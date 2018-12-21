@@ -14,19 +14,47 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 #define SERVER_PORT 27015	// Port number of server that will be used for communication with clients
-#define BUFFER_SIZE 10 //512		// Size of buffer that will be used for sending and receiving messages to clients
+#define BUFFER_SIZE 512		// Size of buffer that will be used for sending and receiving messages to clients
 #define FILE_NAME "test8mb.txt"
 #define START_BUFF 20                       // Size of buffer that will be used for start request message
 
+SOCKET serverSocket1;
+SOCKET serverSocket2;
+SOCKET serverSocket3;
+SOCKET serverSocket4;
+
+
 int POF;  //parts of file
+int sendResult;
+int conffd;
+FILE* fileForSend;
+char dataBuffer[BUFFER_SIZE + 1];
+
 // Checks if ip address belongs to IPv4 address family
 bool is_ipV4_address(sockaddr_in6 address);
 
+void creatingSocket(){}
+
+
+
 void sending()
 {
+	int i;
+	int offset = 0;
+	for (i = 0; i < 50/*POF*/; i++)
+	{
+		memset(dataBuffer, 0, BUFFER_SIZE);
 
+		fseek(fileForSend, offset, SEEK_SET);
+		fread(dataBuffer, sizeof(char), BUFFER_SIZE + 1, fileForSend);
+		offset += BUFFER_SIZE;
+		puts(dataBuffer);
 
-
+		sendResult = send(	conffd,						// Own socket
+						 dataBuffer,						// Text of message
+						 BUFFER_SIZE,				// Message size
+						 0);
+	}
 
 }
 
@@ -34,20 +62,20 @@ int main()
 {
     // Server address 
      sockaddr_in6  serverAddress , clientAddr; 
-	 int conffd;
+	 
 	 int len;
 	 int lenOfFile;
 	 int i;
-	 FILE* fileForSend;
+	 
 
 	 // Buffer we will use to send and receive clients' messages
-     char dataBuffer[BUFFER_SIZE];
+     
 	 char startBuffer[START_BUFF];
 
 	
 	 
 	//OPENING FILE FOR SENDING
-	fileForSend = fopen(FILE_NAME, "r");
+	fileForSend = fopen(FILE_NAME, "rb");
 	if(fileForSend == NULL) {
 		printf("Can't open the file %s", FILE_NAME);
 	}
@@ -60,7 +88,7 @@ int main()
 	}
 
 	POF = lenOfFile / BUFFER_SIZE + 1;
-
+	printf("\n%d\n", POF);
 
 	// WSADATA data structure that is to receive details of the Windows Sockets implementation
     WSADATA wsaData;
@@ -138,23 +166,25 @@ int main()
 	if (!strncmp(startBuffer, "START", iResult)) 
 	{
 		printf("Sending start!");
+		sending();
 	}
+	
 	// Set whole buffer to zero
-        memset(dataBuffer, 0, BUFFER_SIZE);
+    //    memset(dataBuffer, 0, BUFFER_SIZE);
 	//for (i = 0; i < POF; i++)
 	//{
-		fseek(fileForSend, 0*BUFFER_SIZE/**i*/, SEEK_SET);
-		fread(dataBuffer, sizeof(char), BUFFER_SIZE, fileForSend);
+	//	fseek(fileForSend, 0*BUFFER_SIZE/**i*/, SEEK_SET);
+	//	fread(dataBuffer, sizeof(char), BUFFER_SIZE - 1, fileForSend);
 		
-		puts( dataBuffer);
+	//	puts( dataBuffer);
 	//}
 
 	//APFAPFPSAFPASPFPAS
-	iResult = send(	conffd,						// Own socket
+	/*iResult = send(	conffd,						// Own socket
 						 dataBuffer,						// Text of message
-						 strlen(dataBuffer),				// Message size
+						 BUFFER_SIZE - 1,				// Message size
 						 0);								// 
-
+	*/
 
     // Main server loop
     while(1)

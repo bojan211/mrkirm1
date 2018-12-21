@@ -15,21 +15,44 @@
 
 #define SERVER_IP_ADDRESS "0:0:0:0:0:0:0:1"	// IPv6 address of server in localhost
 #define SERVER_PORT 27015					// Port number of server that will be used for communication with clients
-#define BUFFER_SIZE 10 //512						// Size of buffer that will be used for sending and receiving messages to client
+#define BUFFER_SIZE 512						// Size of buffer that will be used for sending and receiving messages to client
 #define START_BUFF 20                       // Size of buffer that will be used for start request message
 
+char dataBuffer[BUFFER_SIZE + 1];
+FILE* outFile;
+int recvResult;
+SOCKET clientSocket;
+
+void receiving()
+{
+	int i;
+
+	for (i = 0; i < 50/*POF*/; i++)
+	{
+		memset(dataBuffer, 0, BUFFER_SIZE);
+		
+		recvResult = recv(	clientSocket,						// Own socket
+			            dataBuffer,							// Buffer that will be used for receiving message
+						BUFFER_SIZE,							// Maximal size of buffer
+						0);									// No flags
+
+		printf("\n%s\n",dataBuffer);
+		fprintf(outFile,"%s", dataBuffer);
+	}
+
+}
 
 int main()
 {
     // Server address structure
     sockaddr_in6 serverAddress;
-	FILE* outFile;
+	
     // Size of server address structure
 	int sockAddrLen = sizeof(serverAddress);
 
 	// Buffer that will be used for sending and receiving messages to client
-	outFile = fopen("izlaz.txt", "w");
-    char dataBuffer[BUFFER_SIZE];
+	outFile = fopen("izlaz.txt", "wb");
+    //char dataBuffer[BUFFER_SIZE + 1];
 	char sendReq[START_BUFF];
 
 	// WSADATA data structure that is used to receive details of the Windows Sockets implementation
@@ -57,7 +80,7 @@ int main()
 	 
 
 	// Create a socket
-    SOCKET clientSocket = socket(AF_INET6,      // IPv6 address famly
+    clientSocket = socket(AF_INET6,      // IPv6 address famly
 								 SOCK_STREAM,   // stream socket
 								 IPPROTO_TCP); // TCP protocol
 
@@ -89,19 +112,19 @@ int main()
 	
 
 
+	//memset(dataBuffer, 0, BUFFER_SIZE);
 
 	// PRIMANJEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-    iResult = recv(	   clientSocket,						// Own socket
+    /*iResult = recv(	   clientSocket,						// Own socket
 			            dataBuffer,							// Buffer that will be used for receiving message
-						BUFFER_SIZE,							// Maximal size of buffer
+						BUFFER_SIZE - 1,							// Maximal size of buffer
 						0);									// No flags
 						//(struct sockaddr *)&clientAddress,	// Client information from received message (ip address and port)
 						// &sockAddrLen);						// Size of sockadd_in structure
-	char* temp = (char*)malloc(sizeof(char)*iResult);
-	strncpy(temp, dataBuffer, iResult);
-	printf("\n%s\n",temp);
-	printf("\n%s\n",dataBuffer);
-	fprintf(outFile,"%s", temp);
+	*/
+	receiving();
+	//printf("\n%s\n",dataBuffer);
+	//fprintf(outFile,"%s", dataBuffer);
 	fclose(outFile);
 	// Check if message is succesfully received
 	if (iResult == SOCKET_ERROR)
