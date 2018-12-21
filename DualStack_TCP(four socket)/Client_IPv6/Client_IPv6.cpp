@@ -14,7 +14,7 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 #define SERVER_IP_ADDRESS "0:0:0:0:0:0:0:1"	// IPv6 address of server in localhost
-#define SERVER_PORT 27015					// Port number of server that will be used for communication with clients
+#define SERVER_PORT 27014					// Port number of server that will be used for communication with clients
 #define BUFFER_SIZE 512						// Size of buffer that will be used for sending and receiving messages to client
 #define START_BUFF 20                       // Size of buffer that will be used for start request message
 
@@ -22,6 +22,30 @@ char dataBuffer[BUFFER_SIZE + 1];
 FILE* outFile;
 int recvResult;
 SOCKET clientSocket;
+sockaddr_in6 serverAddress;
+
+void creatingSocket(SOCKET* socketName)
+{
+
+		// Create a socket
+    *socketName = socket(AF_INET6,      // IPv6 address famly
+								 SOCK_STREAM,   // stream socket
+								 IPPROTO_TCP); // TCP protocol
+
+	// Check if socket creation succeeded
+    if (*socketName == INVALID_SOCKET)
+    {
+        printf("Creating socket failed with error: %d\n", WSAGetLastError());
+        WSACleanup();
+        return ;
+	}else{
+		printf("Napravio je novi socket!\n");
+	}
+
+
+
+
+}
 
 void receiving()
 {
@@ -45,7 +69,7 @@ void receiving()
 int main()
 {
     // Server address structure
-    sockaddr_in6 serverAddress;
+    
 	
     // Size of server address structure
 	int sockAddrLen = sizeof(serverAddress);
@@ -78,25 +102,14 @@ int main()
     serverAddress.sin6_port = htons(SERVER_PORT);						// Set server port
 	serverAddress.sin6_flowinfo = 0;									// flow info
 	 
-
-	// Create a socket
-    clientSocket = socket(AF_INET6,      // IPv6 address famly
-								 SOCK_STREAM,   // stream socket
-								 IPPROTO_TCP); // TCP protocol
-
-	// Check if socket creation succeeded
-    if (clientSocket == INVALID_SOCKET)
-    {
-        printf("Creating socket failed with error: %d\n", WSAGetLastError());
-        WSACleanup();
-        return 1;
-    }
+	creatingSocket(&clientSocket);
 
 	if(connect(clientSocket,(struct sockaddr *)&serverAddress , sizeof(serverAddress))<0)
 	{
 	    perror("connect failed. Error");
         return 1;
 	}
+
 
 
 	printf("Send ""START"" if you want to start receiving file !:\n");

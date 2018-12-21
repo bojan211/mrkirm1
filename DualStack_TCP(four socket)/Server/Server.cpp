@@ -13,16 +13,16 @@
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
 
-#define SERVER_PORT 27015	// Port number of server that will be used for communication with clients
+#define SERVER_PORT 27014	// Port number of server that will be used for communication with clients
 #define BUFFER_SIZE 512		// Size of buffer that will be used for sending and receiving messages to clients
 #define FILE_NAME "test8mb.txt"
 #define START_BUFF 20                       // Size of buffer that will be used for start request message
-
+SOCKET serverSocket;
 SOCKET serverSocket1;
 SOCKET serverSocket2;
 SOCKET serverSocket3;
 SOCKET serverSocket4;
-
+sockaddr_in6  serverAddress , clientAddr; 
 
 int POF;  //parts of file
 int sendResult;
@@ -33,7 +33,63 @@ char dataBuffer[BUFFER_SIZE + 1];
 // Checks if ip address belongs to IPv4 address family
 bool is_ipV4_address(sockaddr_in6 address);
 
-void creatingSocket(){}
+void creatingSocket(SOCKET* socketName){
+
+    // Create a socket 
+	int len;
+	int iResult;
+    *socketName = socket(AF_INET6,      // IPv6 address famly
+								 SOCK_STREAM,   // stream socket
+								 IPPROTO_TCP); // TCP
+
+	// Check if socket creation succeeded
+    if (*socketName == INVALID_SOCKET)
+    {
+        printf("Creating socket failed with error: %d\n", WSAGetLastError());
+        WSACleanup();
+        return ;
+	}else{
+		printf("Napravio je novi socket\n");
+	}
+
+	int no = 0;     
+	iResult = setsockopt(*socketName, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&no, sizeof(no)); 
+	
+	if (iResult == SOCKET_ERROR) 
+			printf("failed with error: %u\n", WSAGetLastError());
+
+
+    // Bind server address structure (type, port number and local address) to socket
+    iResult = bind(*socketName,(SOCKADDR *)&serverAddress, sizeof(serverAddress));
+
+	// Check if socket is succesfully binded to server datas
+    if (iResult == SOCKET_ERROR)
+    {
+        printf("Socket bind failed with error: %d\n", WSAGetLastError());
+        closesocket(*socketName);
+        WSACleanup();
+        return ;
+    }
+
+ if ((listen(*socketName, 5)) != 0) { 
+        printf("Listen failed...\n"); 
+        exit(0); 
+    } 
+    else
+        printf("Server listening..\n"); 
+    len = sizeof(clientAddr); 
+
+
+	conffd = accept(*socketName, (sockaddr*)&clientAddr, &len); 
+    if (conffd < 0) { 
+        printf("server acccept failed...\n"); 
+        exit(0); 
+    } 
+    else
+        printf("server acccept the client...\n"); 
+
+
+}
 
 
 
@@ -61,9 +117,9 @@ void sending()
 int main()
 {
     // Server address 
-     sockaddr_in6  serverAddress , clientAddr; 
+    
 	 
-	 int len;
+	 int iResult;
 	 int lenOfFile;
 	 int i;
 	 
@@ -100,62 +156,17 @@ int main()
         return 1;
     }
 
-    // Initialize serverAddress structure used by bind function
+	    // Initialize serverAddress structure used by bind function
 	memset((char*)&serverAddress, 0, sizeof(serverAddress));
     serverAddress.sin6_family = AF_INET6; 			// set server address protocol family
     serverAddress.sin6_addr = in6addr_any;			// use all available addresses of server
     serverAddress.sin6_port = htons(SERVER_PORT);	// Set server port
 	serverAddress.sin6_flowinfo = 0;				// flow info
 
-    // Create a socket 
-    SOCKET serverSocket = socket(AF_INET6,      // IPv6 address famly
-								 SOCK_STREAM,   // stream socket
-								 IPPROTO_TCP); // TCP
-
-	// Check if socket creation succeeded
-    if (serverSocket == INVALID_SOCKET)
-    {
-        printf("Creating socket failed with error: %d\n", WSAGetLastError());
-        WSACleanup();
-        return 1;
-    }
 	
-	// Disable receiving only IPv6 packets. We want to receive both IPv4 and IPv6 packets.
-	int no = 0;     
-	int iResult = setsockopt(serverSocket, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&no, sizeof(no)); 
+	creatingSocket(&serverSocket1);
 	
-	if (iResult == SOCKET_ERROR) 
-			printf("failed with error: %u\n", WSAGetLastError());
 
-
-    // Bind server address structure (type, port number and local address) to socket
-    iResult = bind(serverSocket,(SOCKADDR *)&serverAddress, sizeof(serverAddress));
-
-	// Check if socket is succesfully binded to server datas
-    if (iResult == SOCKET_ERROR)
-    {
-        printf("Socket bind failed with error: %d\n", WSAGetLastError());
-        closesocket(serverSocket);
-        WSACleanup();
-        return 1;
-    }
-
- if ((listen(serverSocket, 5)) != 0) { 
-        printf("Listen failed...\n"); 
-        exit(0); 
-    } 
-    else
-        printf("Server listening..\n"); 
-    len = sizeof(clientAddr); 
-
-
-	conffd = accept(serverSocket, (sockaddr*)&clientAddr, &len); 
-    if (conffd < 0) { 
-        printf("server acccept failed...\n"); 
-        exit(0); 
-    } 
-    else
-        printf("server acccept the client...\n"); 
 	
 	//Receiving start message! If that message is "START" , start sending
 	iResult = recv(	   conffd,						// Own socket
@@ -210,7 +221,7 @@ int main()
 		// Check if message is succesfully received
 		if (iResult == SOCKET_ERROR)
 		{
-			printf("recvfrom failed with error: %d\n", WSAGetLastError());
+			printf("recvfrom !!!!!!!!!!!!! failed with error: %d\n", WSAGetLastError());
 			continue;
 		}
 
