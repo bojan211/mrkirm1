@@ -1,0 +1,17 @@
+﻿Build started 20.12.2018 16:08:33.
+     1>Project "D:\ra82-2015\vezbe\projekat\DualStack_TCP(four socket)\Server\Server.vcxproj" on node 4 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\Server.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         All outputs are up-to-date.
+       Link:
+         All outputs are up-to-date.
+         Server.vcxproj -> D:\ra82-2015\vezbe\projekat\DualStack_TCP(four socket)\Debug\Server.exe
+       FinalizeBuildStatus:
+         Deleting file "Debug\Server.unsuccessfulbuild".
+         Touching "Debug\Server.lastbuildstate".
+     1>Done Building Project "D:\ra82-2015\vezbe\projekat\DualStack_TCP(four socket)\Server\Server.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.04
